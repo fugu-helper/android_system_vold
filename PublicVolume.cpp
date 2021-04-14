@@ -216,6 +216,15 @@ status_t PublicVolume::doUnmount() {
         mFusePid = 0;
     }
 
+    struct stat sb;
+    if (TEMP_FAILURE_RETRY(lstat(mFuseDefault.c_str(), &sb)) == -1) {
+        if (errno == ENOTCONN) {
+            if (umount2(mFuseDefault.c_str(), UMOUNT_NOFOLLOW)) {
+                LOG(WARNING) << "Failed to unmount " << mFuseDefault;
+            }
+        }
+    }
+
     rmdir(mFuseDefault.c_str());
     rmdir(mFuseRead.c_str());
     rmdir(mFuseWrite.c_str());
